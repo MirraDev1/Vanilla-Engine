@@ -12,38 +12,10 @@ namespace vl::UI{
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-     if (ImGui::BeginMainMenuBar()) {
-			if (ImGui::BeginMenu("Settings")) {
-				ImGui::MenuItem("Open Settings", nullptr, &settingsOpen_);
-				ImGui::EndMenu();
-			}
-            ImGui::EndMainMenuBar();
-        }
+        vlLoadSettingsPanel();
 
-		if (settingsOpen_) {
-			if (ImGui::Begin("Settings", &settingsOpen_, ImGuiWindowFlags_NoCollapse)) {
-				ImGui::BeginChild("SettingsNavigation", ImVec2(180.0f, 0.0f), true);
-				ImGui::Text("Categories");
-				ImGui::Separator();
-				if (ImGui::Selectable("Rendering", selectedSettingsPage_ == 0)) {
-					selectedSettingsPage_ = 0;
-				}
-				ImGui::EndChild();
-
-				ImGui::SameLine();
-				ImGui::BeginChild("SettingsOptions", ImVec2(0.0f, 0.0f), true);
-				if (selectedSettingsPage_ == 0) {
-					ImGui::Text("Rendering");
-					ImGui::Separator();
-					vlSyncSettingsCallback();
-				}
-				ImGui::EndChild();
-			}
-			ImGui::End();
-		}
-        
         bool editor_open = true;
-        ImGui::Begin("Editor", &editor_open,ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
+        ImGui::Begin("Editor", &editor_open,ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
         
         for (auto& Pcallbacks : panels_) {
             if (ImGui::CollapsingHeader(Pcallbacks.name.c_str())) {
@@ -54,12 +26,51 @@ namespace vl::UI{
         ImGui::End();
     }
 
+    void UserInterface::vlLoadSettingsPanel(){
+        if (ImGui::BeginMainMenuBar()) {
+            if (ImGui::BeginMenu("Settings")) {
+                ImGui::MenuItem("Open Settings", nullptr, &settingsOpen_);
+                ImGui::EndMenu();
+            }
+            ImGui::EndMainMenuBar();
+        }
+
+        if (settingsOpen_) {
+            if (ImGui::Begin("Settings", &settingsOpen_, ImGuiWindowFlags_NoCollapse)) {
+                ImGui::BeginChild("SettingsNavigation", ImVec2(180.0f, 0.0f), true);
+                ImGui::Text("Categories");
+                ImGui::Separator();
+
+                for (int i = 0; i < static_cast<int>(settingsCallbacks_.size()); ++i) {
+                    auto& panel = settingsCallbacks_[i];
+                    if (ImGui::Selectable(panel.MainTitle.c_str(), selectedSettingsPage_ == i)) {
+                        selectedSettingsPage_ = i;
+                    }
+                }
+                ImGui::EndChild();
+
+                ImGui::SameLine();
+                ImGui::BeginChild("SettingsOptions", ImVec2(0.0f, 0.0f), true);
+                if (selectedSettingsPage_ >= 0 &&
+                    selectedSettingsPage_ < static_cast<int>(settingsCallbacks_.size())) {
+                    auto& panel = settingsCallbacks_[selectedSettingsPage_];
+                    ImGui::Text("%s", panel.OtherTitle.c_str());
+                    ImGui::Separator();
+                    if (panel.Getinf) panel.Getinf();
+                }
+                ImGui::EndChild();
+            }
+            ImGui::End();
+        }
+
+    }
+
     void UserInterface::RegisterPanels(Editor Panels){
         panels_.push_back(std::move(Panels));
     }
 
-    void UserInterface::RegisterSettingsCallback(SettingsCallback callback){
-		settingsCallbacks_.push_back(callback);
+    void UserInterface::RegisterSettingsCallback(SettingsPanel callback){
+		settingsCallbacks_.push_back(std::move(callback));
     }
 
     void UserInterface::RegisterFileCallbacks(FileCallback filecallbacks){
@@ -73,8 +84,8 @@ namespace vl::UI{
     }
 
     void UserInterface::vlSyncSettingsCallback(){
-		for (auto& callback : settingsCallbacks_) {
-			if (callback) callback();
+		for (auto& panel : settingsCallbacks_) {
+			if (panel.Getinf) panel.Getinf();
         }
     }
 

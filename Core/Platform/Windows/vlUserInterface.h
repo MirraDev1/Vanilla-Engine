@@ -18,23 +18,30 @@ struct Editor {
 	std::function<void()> draw;
 };
 
+struct SettingsPanel {
+	std::function<void()> Getinf;
+	std::string MainTitle;
+	std::string OtherTitle;
+	int numPages{};
+};
+
 namespace vl::UI {
 	class UserInterface {
 	public:
 		UserInterface() = default;
 		~UserInterface();
-		using SettingsCallback = std::function<void()>;
 		using FileCallback = std::function<void()>;
 		void vlInitUI(GLFWwindow* window, ComPtr<ID3D11Device> device, ComPtr<ID3D11DeviceContext> context);
 		void vlStageUI();
+		void vlLoadSettingsPanel();
 		void RegisterPanels(Editor Panels);
-		void RegisterSettingsCallback(SettingsCallback callback);
+		void RegisterSettingsCallback(SettingsPanel callback);
 		void RegisterFileCallbacks(FileCallback filecallbacks);
 		void vlRenderUI();
 	private:
 		void vlSyncFileCallbacks();
 		void vlSyncSettingsCallback();
-		std::vector<SettingsCallback> settingsCallbacks_;
+		std::vector<SettingsPanel> settingsCallbacks_;
 		std::vector<FileCallback>FileCallbacks_;
 		std::vector<Editor>panels_;
 		bool settingsOpen_ = false;

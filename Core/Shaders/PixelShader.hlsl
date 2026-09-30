@@ -1,4 +1,4 @@
-Texture2D texture : register(t0);
+Texture2D vltexture : register(t0);
 sampler samplerState : register(s0);
 
 struct Pixel_in
@@ -9,6 +9,6 @@ struct Pixel_in
 
 float4 PSMain(Pixel_in input) : SV_TARGET
 {
-    float4 color = texture.Sample(samplerState, input.TexCoord.xy);
-    return color;
+    float4 color = vltexture.Sample(samplerState, input.TexCoord.xy);
+    return color.a > 0.0f ? color : float4(0.20f, 0.65f, 0.95f, 1.0f);
 }

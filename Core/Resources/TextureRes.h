@@ -24,7 +24,7 @@ namespace vl::Resource {
     };
     template<typename T>
     inline void Texture::vlCreateTextureResource(ComPtr<ID3D11Device>& device, std::span<T>& data,UINT arraysize,ComPtr<ID3D11Texture2D>&tex_,UINT BindFlags,D3D11_USAGE usage){
-        Texdescription.MipLevels = -1;
+        Texdescription.MipLevels = 1;
         Texdescription.ArraySize = arraysize;;
         Texdescription.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
         Texdescription.SampleDesc.Count = 1;

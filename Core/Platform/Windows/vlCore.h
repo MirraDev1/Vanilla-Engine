@@ -16,16 +16,20 @@ namespace vl {
 	public:
 		Core();
 		~Core();
-		void VlInitialize(vl::Platform::Window& window);
+		bool VlInitialize(vl::Platform::Window& window);
 		[[nodiscard]] ComPtr<ID3D11Device> GetDevice() const { return device_; }
 		[[nodiscard]] ComPtr<ID3D11DeviceContext> GetContext() const { return context_; }
 		[[nodiscard]] ComPtr<IDXGISwapChain> GetSwapChain() const { return swapChain_; }
 		[[nodiscard]] ComPtr<ID3D11RenderTargetView> GetRenderTargetView() const { return renderTargetView_; }
+		[[nodiscard]] ComPtr<ID3D11DepthStencilView> GetDepthStencilView() const { return depthStencilView_; }
 	private:
 		ComPtr<ID3D11Device> device_;
 		ComPtr<ID3D11DeviceContext> context_;
 		ComPtr<IDXGISwapChain> swapChain_;
 		ComPtr<ID3D11RenderTargetView> renderTargetView_;
+		ComPtr<ID3D11Texture2D> depthStencilBuffer_;
+		ComPtr<ID3D11DepthStencilView> depthStencilView_;
+		ComPtr<ID3D11DepthStencilState> depthStencilState_;
 		HRESULT hr = S_OK;
 	};
 }

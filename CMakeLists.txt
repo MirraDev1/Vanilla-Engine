@@ -1,3 +1,4 @@
+
 cmake_minimum_required(VERSION 3.21)
 
 project(VanillaEngine LANGUAGES CXX)
@@ -29,11 +30,11 @@ set(ENGINE_SOURCES
     "Core/Main.cpp"
     "Core/Application.cpp"
     "Core/Platform/Windows/vlWindow.cpp"
-    "Core/Resources/Buffer.h"
-    "Core/Resources/Buffer.cpp"
+    "Core/Platform/DirectX/Buffer.h"
+     "Core/Platform/DirectX/Buffer.cpp"
     "Core/Platform/Windows/vlRenderer.cpp"
-     "Core/vlCore.h"
-     "Core/vlCore.cpp"
+     "Core/Platform/Windows/vlCore.h"
+     "Core/Platform/Windows/vlCore.cpp"
      "Core/Platform/DirectX/VertexShader.cpp"
      "Core/Platform/DirectX/VertexShader.h"
      "Core/Platform/Windows/vlUserInterface.cpp"
@@ -42,7 +43,11 @@ set(ENGINE_SOURCES
      "Core/Platform/DirectX/PixelShader.cpp"
      "Core/Resources/TextureRes.cpp"
      "Core/Resources/TextureRes.h"
- "Core/Platform/DirectX/vlMesh.cpp" "Core/Platform/DirectX/vlMesh.h")
+     
+     
+     "Core/Platform/DirectX/vlDebugLayer.cpp"
+     "Core/Platform/DirectX/vlDebugLayer.h")
+
 set(IMGUI_SOURCES
     ${IMGUI_DIR}/imgui.cpp
     ${IMGUI_DIR}/imgui_draw.cpp
@@ -51,7 +56,7 @@ set(IMGUI_SOURCES
     ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
     ${IMGUI_DIR}/backends/imgui_impl_dx11.cpp)
 
-add_executable(Vanilla ${ENGINE_SOURCES} ${IMGUI_SOURCES} ${ENGINE_SHADERS})
+add_executable(Vanilla ${ENGINE_SOURCES} ${IMGUI_SOURCES})
 
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/Core/Shaders"
     PREFIX "Shaders"
