@@ -19,6 +19,10 @@ add_subdirectory(Core/Vendor/glfw)
 
 set(IMGUI_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Core/Vendor/imgui")
 
+# Build tinyobjloader as a submodule dependency for mesh loading.
+set(TINYOBJLOADER_BUILD_TEST_LOADER OFF CACHE BOOL "" FORCE)
+add_subdirectory(Core/Vendor/tinyobjloader EXCLUDE_FROM_ALL)
+
 # Discover engine shaders automatically. CONFIGURE_DEPENDS makes CMake
 # reconfigure when another shader is added under Core/Shaders.
 file(GLOB_RECURSE ENGINE_SHADERS CONFIGURE_DEPENDS
@@ -69,7 +73,7 @@ target_include_directories(Vanilla PRIVATE
     ${IMGUI_DIR}/backends
 )
 
-target_link_libraries(Vanilla PRIVATE glfw DirectXTex d3d11 d3dcompiler dxgi gdi32)
+target_link_libraries(Vanilla PRIVATE glfw DirectXTex tinyobjloader d3d11 d3dcompiler dxgi gdi32)
 
 foreach(SHADER_FILE IN LISTS ENGINE_SHADERS)
     file(RELATIVE_PATH SHADER_RELATIVE_PATH
