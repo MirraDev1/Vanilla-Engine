@@ -50,7 +50,7 @@ set(ENGINE_SOURCES
      
      
      "Core/Platform/DirectX/vlDebugLayer.cpp"
-     "Core/Platform/DirectX/vlDebugLayer.h")
+     "Core/Platform/DirectX/vlDebugLayer.h" "Core/Platform/Windows/Viewport.cpp" "Core/Platform/Windows/Viewport.h" "Core/Platform/Windows/vlCam.h" "Core/Platform/Windows/vlCam.cpp")
 
 set(IMGUI_SOURCES
     ${IMGUI_DIR}/imgui.cpp

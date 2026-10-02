@@ -12,13 +12,24 @@ namespace vl::Resource {
 	class Buffer;
 }
 
+struct SceneMatrices {
+	DirectX::XMFLOAT4X4 world;
+	DirectX::XMFLOAT4X4 view;
+	DirectX::XMFLOAT4X4 projection;
+};
+
 namespace vl::Platform {
 	class Renderer {
 	public:
 		Renderer();
 		~Renderer();
 		void InitRenderer(ComPtr<ID3D11Device>Device,ComPtr<ID3D11RenderTargetView>Rtv, ComPtr<ID3D11DepthStencilView>Dsv, ComPtr<ID3D11DeviceContext>Context, ComPtr<IDXGISwapChain>Swapchain);
-		void vlSetRendererInfo();
+		void ReleaseRenderTargets();
+		void UpdateRenderTargets(ComPtr<ID3D11RenderTargetView> Rtv, ComPtr<ID3D11DepthStencilView> Dsv);
+		void ClearFrame(const float clearColor[4]);
+		void UpdateSceneMatrices(const DirectX::XMMATRIX& world,
+			const DirectX::XMMATRIX& view,
+			const DirectX::XMMATRIX& projection);
 		void Present();
 	private:
 		int Options = 0;

@@ -22,10 +22,15 @@ public:
     [[nodiscard]] std::uint32_t Width() const { return width_; }
     [[nodiscard]] std::uint32_t Height() const { return height_; }
 
+    bool ConsumeResize(std::uint32_t& width, std::uint32_t& height) noexcept;
+
 private:
+    static void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
+
     GLFWwindow* vlwindow_ = nullptr;
     std::uint32_t width_ = 0;
     std::uint32_t height_ = 0;
+    bool resizePending_ = false;
     bool glfwInitialized_ = false;
 };
 

@@ -17,11 +17,14 @@ namespace vl {
 		Core();
 		~Core();
 		bool VlInitialize(vl::Platform::Window& window);
+		bool Resize(unsigned int width, unsigned int height);
 		[[nodiscard]] ComPtr<ID3D11Device> GetDevice() const { return device_; }
 		[[nodiscard]] ComPtr<ID3D11DeviceContext> GetContext() const { return context_; }
 		[[nodiscard]] ComPtr<IDXGISwapChain> GetSwapChain() const { return swapChain_; }
 		[[nodiscard]] ComPtr<ID3D11RenderTargetView> GetRenderTargetView() const { return renderTargetView_; }
 		[[nodiscard]] ComPtr<ID3D11DepthStencilView> GetDepthStencilView() const { return depthStencilView_; }
+		[[nodiscard]] ComPtr<ID3D11DepthStencilState> GetDepthStencilState() const { return depthStencilState_; }
+		[[nodiscard]] ComPtr<ID3D11Texture2D> GetDepthStencilBuffer() const { return depthStencilBuffer_; }
 	private:
 		ComPtr<ID3D11Device> device_;
 		ComPtr<ID3D11DeviceContext> context_;

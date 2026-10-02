@@ -5,6 +5,8 @@
 #include "Platform/DirectX/VertexShader.h"
 #include "Platform/DirectX/PixelShader.h"
 #include "Platform/Windows/vlCore.h"
+#include "Platform/Windows/vlCam.h"
+#include "Platform/Windows/Viewport.h"
 #include <iostream>
 #include <algorithm>
 
@@ -28,10 +30,14 @@ void vl::App::Application::vlGetEvents(){
 	if (!core_->VlInitialize(*window_)) {
 		return;
 	}
-	VRender renderinf;
-	renderinf.viewport = VRENDERER_VIEWPORT_ON;
-	renderinf.BgState = VRENDERER_CLEAR_TRUE;
-	renderinf.IsobjState = VRENDERER_FILL_WIREFRAME;
+	camera_ = std::make_unique<Camera>();
+	VlViewport initialViewport{
+		window_->Width(),
+		window_->Height(),
+		window_->Width(),
+		window_->Height()
+	};
+	camera_->InitViewport(initialViewport);
 
 	renderer_ = std::make_unique<vl::Platform::Renderer>();
 	userInterface_ = std::make_unique<vl::UI::UserInterface>();
@@ -46,11 +52,11 @@ void vl::App::Application::vlGetEvents(){
 
     pixelShader_->InitInstance(core_->GetDevice(), core_->GetContext());
 	pixelshader.filename = "Shaders/PixelShader.hlsl";
-	pixelshader.entry = "PMain";
+	pixelshader.entry = "PSMain";
 	pixelshader.shader_model = "ps_5_0";
 	pixelShader_->vlpshaderInf(pixelshader);
 
-	renderer_->InitRenderer(&renderinf, core_->GetDevice(), core_->GetRenderTargetView(), core_->GetDepthStencilView(), core_->GetContext(), core_->GetSwapChain());
+	renderer_->InitRenderer(core_->GetDevice(), core_->GetRenderTargetView(), core_->GetDepthStencilView(), core_->GetContext(), core_->GetSwapChain());
 	userInterface_->vlInitUI(window_->GetHandle(), core_->GetDevice(), core_->GetContext());
 }
 
@@ -59,6 +65,32 @@ int vl::App::Application::Run() {
 	while (!glfwWindowShouldClose(window_->GetHandle())) {
        glfwPollEvents();
 
+	   std::uint32_t framebufferWidth = 0;
+	   std::uint32_t framebufferHeight = 0;
+	   if (window_->ConsumeResize(framebufferWidth, framebufferHeight) &&
+		   framebufferWidth > 0 && framebufferHeight > 0) {
+		   renderer_->ReleaseRenderTargets();
+		   if (core_->Resize(framebufferWidth, framebufferHeight)) {
+			   VlViewport resizedViewport{
+				   0,
+				   0,
+				   framebufferWidth,
+				   framebufferHeight
+			   };
+			   camera_->UpdateViewport(resizedViewport);
+			   renderer_->UpdateRenderTargets(
+				   core_->GetRenderTargetView(),
+				   core_->GetDepthStencilView());
+		   }
+	   }
+
+	   constexpr float clearColor[4] = { 0.05f, 0.05f, 0.05f, 1.0f };
+	   renderer_->ClearFrame(clearColor);
+	   renderer_->UpdateSceneMatrices(
+		   DirectX::XMMatrixIdentity(),
+		   camera_->GetViewMatrix(),
+		   camera_->GetProjectionMatrix());
+
 	   userInterface_->vlStageUI();
 
 	   vertexShader_->vlLoadVertexShader(core_->GetDevice(), vertexshader);
@@ -66,7 +98,6 @@ int vl::App::Application::Run() {
 	   pixelShader_->vlLoadPixelShader(core_->GetDevice(), pixelshader);
 	   pixelShader_->vlGetPixelShader(pixelshader);
 
-	   renderer_->vlSetRendererInfo();
 	   userInterface_->vlRenderUI();
 
 	   renderer_->Present();

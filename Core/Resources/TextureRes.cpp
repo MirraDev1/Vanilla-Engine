@@ -1,61 +1,124 @@
 #include "TextureRes.h"
 
+#include <iostream>
+
+namespace {
+
+    HRESULT CreateShaderResourceView(
+        ID3D11Device* device,
+        const DirectX::ScratchImage& image,
+        const DirectX::TexMetadata& metadata,
+        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& destination)
+    {
+        if (device == nullptr) {
+            return E_INVALIDARG;
+        }
+
+        return DirectX::CreateShaderResourceView(
+            device,
+            image.GetImages(),
+            image.GetImageCount(),
+            metadata,
+            destination.ReleaseAndGetAddressOf());
+    }
+
+}
+
 namespace vl::Resource {
-	ComPtr<ID3D11ShaderResourceView> Texture::vlLoadDDS(ComPtr<ID3D11ShaderResourceView>& srv, ComPtr<ID3D11Device>& device, const wchar_t* filename_) {
-		DirectX::ScratchImage image = {};
-		DirectX::TexMetadata metadata = {};
-		hr = DirectX::LoadFromDDSFile(filename_, DirectX::DDS_FLAGS_NONE, &metadata, image);
-		if (FAILED(hr)) {
-			std::cerr << "\aFailed to load DDS file: " << std::endl;
-			return nullptr;
-		}
 
-		DirectX::CreateShaderResourceView(
-			device.Get(),
-			image.GetImages(),
-			image.GetImageCount(),
-			metadata,
-			srv.GetAddressOf()
-		);
+    HRESULT Texture2D::vlLoadDDS(
+        ID3D11Device* device,
+        const std::filesystem::path& filename)
+    {
+        DirectX::ScratchImage image;
+        DirectX::TexMetadata metadata{};
 
-		return srv.Get();
-	}
+        HRESULT hr = DirectX::LoadFromDDSFile(
+            filename.c_str(),
+            DirectX::DDS_FLAGS_NONE,
+            &metadata,
+            image);
 
-	ComPtr<ID3D11ShaderResourceView> Texture::vlLoadWIC(ComPtr<ID3D11ShaderResourceView>& srv, ComPtr<ID3D11Device>& device,const wchar_t* filename_) {
-		DirectX::ScratchImage image = {};
-		DirectX::TexMetadata metadata = {};
-		hr = DirectX::LoadFromWICFile(filename_, DirectX::WIC_FLAGS_NONE, &metadata, image);
-		if (FAILED(hr)) {
-			std::cerr << "\aFailed to load WIC file: " << std::endl;
-			return nullptr;
-		}
+        if (FAILED(hr)) {
+            std::cerr << "Failed to load DDS texture: "
+                      << filename.string() << '\n';
+            return hr;
+        }
 
-		DirectX::CreateShaderResourceView(
-			device.Get(),
-			image.GetImages(),
-			image.GetImageCount(),
-			metadata,
-			srv.GetAddressOf()
-		);
+        hr = CreateShaderResourceView(device, image, metadata, shaderResourceView_);
+        if (FAILED(hr)) {
+            std::cerr << "Failed to create DDS shader resource view: "
+                      << filename.string() << '\n';
+        }
 
-		return srv.Get();
-	}
+        return hr;
+    }
 
-	void Texture::vlCreateSamplerState(ComPtr<ID3D11SamplerState>& samplerState, ComPtr<ID3D11Device>& device, D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode){
-		D3D11_SAMPLER_DESC samplerDesc{};
-		samplerDesc.Filter = filter;
-		samplerDesc.AddressU = addressMode;
-		samplerDesc.AddressV = addressMode;
-		samplerDesc.AddressW = addressMode;
-		samplerDesc.MipLODBias = 0.0f;
-		samplerDesc.MaxAnisotropy = 1;
-		samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-		samplerDesc.BorderColor[0] = 0.0f;
-		samplerDesc.BorderColor[1] = 0.0f;
-		samplerDesc.BorderColor[2] = 0.0f;
-		samplerDesc.BorderColor[3] = 0.0f;
-		samplerDesc.MinLOD = 0.0f;
-		samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-		device->CreateSamplerState(&samplerDesc, samplerState.GetAddressOf());
-	}
+    HRESULT Texture2D::vlLoadWIC(
+        ID3D11Device* device,
+        const std::filesystem::path& filename)
+    {
+        DirectX::ScratchImage image;
+        DirectX::TexMetadata metadata{};
+
+        HRESULT hr = DirectX::LoadFromWICFile(
+            filename.c_str(),
+            DirectX::WIC_FLAGS_NONE,
+            &metadata,
+            image);
+
+        if (FAILED(hr)) {
+            std::cerr << "Failed to load WIC texture: "
+                      << filename.string() << '\n';
+            return hr;
+        }
+
+        hr = CreateShaderResourceView(device, image, metadata, shaderResourceView_);
+        if (FAILED(hr)) {
+            std::cerr << "Failed to create WIC shader resource view: "
+                      << filename.string() << '\n';
+        }
+
+        return hr;
+    }
+
+    HRESULT Texture2D::vlCreateSamplerState(
+        ID3D11Device* device,
+        D3D11_FILTER filter,
+        D3D11_TEXTURE_ADDRESS_MODE addressMode)
+    {
+        if (device == nullptr) {
+            return E_INVALIDARG;
+        }
+
+        D3D11_SAMPLER_DESC samplerDescription{};
+        samplerDescription.Filter = filter;
+        samplerDescription.AddressU = addressMode;
+        samplerDescription.AddressV = addressMode;
+        samplerDescription.AddressW = addressMode;
+        samplerDescription.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+        samplerDescription.MinLOD = 0.0f;
+        samplerDescription.MaxLOD = D3D11_FLOAT32_MAX;
+
+        return device->CreateSamplerState(
+            &samplerDescription,
+            samplerState_.ReleaseAndGetAddressOf());
+    }
+
+    void Texture2D::vlBind(
+        ID3D11DeviceContext* context,
+        UINT textureSlot,
+        UINT samplerSlot) const
+    {
+        if (context == nullptr) {
+            return;
+        }
+
+        ID3D11ShaderResourceView* view = shaderResourceView_.Get();
+        context->PSSetShaderResources(textureSlot, 1, &view);
+
+        ID3D11SamplerState* sampler = samplerState_.Get();
+        context->PSSetSamplers(samplerSlot, 1, &sampler);
+    }
+
 }

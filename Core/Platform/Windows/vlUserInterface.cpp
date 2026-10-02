@@ -13,6 +13,7 @@ namespace vl::UI{
         ImGui::NewFrame();
 
         vlLoadSettingsPanel();
+        VlLoadCamCallbacks();
 
         bool editor_open = true;
         ImGui::Begin("Editor", &editor_open,ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
@@ -71,6 +72,25 @@ namespace vl::UI{
 
     void UserInterface::RegisterSettingsCallback(SettingsPanel callback){
 		settingsCallbacks_.push_back(std::move(callback));
+    }
+
+    void UserInterface::RegisterCamCallbacks(CamCallbacks camcallbacks){
+		camCallbacks_.push_back(std::move(camcallbacks));
+    }
+
+    void UserInterface::VlLoadCamCallbacks(){
+        bool m_camopen = false;
+        if (ImGui::BeginMainMenuBar()) {
+            if (ImGui::BeginMenu("View")) {
+              ImGui::MenuItem("Controls", nullptr, &m_camopen);
+              ImGui::MenuItem("Perspective", nullptr, &m_camopen);
+			  ImGui::EndMenu();
+            }
+            ImGui::EndMainMenuBar();
+        }
+        for (auto& camcallback : camCallbacks_) {
+            if (camcallback) camcallback();
+		}
     }
 
     void UserInterface::RegisterFileCallbacks(FileCallback filecallbacks){

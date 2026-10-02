@@ -4,6 +4,8 @@
 #include "Platform/DirectX/VertexShader.h"
 #include "Platform/DirectX/PixelShader.h"
 
+class Camera;
+
 namespace vl::Platform {
 class Window;
 class Renderer;
@@ -40,6 +42,7 @@ private:
 	std::unique_ptr<vl::UI::UserInterface> userInterface_;
 	std::unique_ptr<vl::Shaders::VertexShader> vertexShader_;
 	std::unique_ptr<vl::Shaders::PixelShader> pixelShader_;
+	std::unique_ptr<Camera> camera_;
 	vshader vertexshader{};
 	pshader pixelshader{};
 };

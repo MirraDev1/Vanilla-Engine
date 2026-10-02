@@ -112,6 +112,84 @@ namespace vl {
 		return true;
 	}
 
+	bool Core::Resize(const unsigned int width, const unsigned int height)
+	{
+		if (width == 0 || height == 0 || !swapChain_ || !device_ || !context_) {
+			return false;
+		}
+
+		// The swap chain cannot resize while its back buffer is still bound.
+		context_->OMSetRenderTargets(0, nullptr, nullptr);
+		context_->Flush();
+
+		renderTargetView_.Reset();
+		depthStencilView_.Reset();
+		depthStencilBuffer_.Reset();
+
+		HRESULT result = swapChain_->ResizeBuffers(
+			0,
+			width,
+			height,
+			DXGI_FORMAT_UNKNOWN,
+			0);
+		vl::DebugLayer::Check(result, "VL::SwapChain ResizeBuffers Failure!");
+		if (FAILED(result)) {
+			return false;
+		}
+
+		ComPtr<ID3D11Texture2D> backBuffer;
+		result = swapChain_->GetBuffer(0, IID_PPV_ARGS(backBuffer.GetAddressOf()));
+		vl::DebugLayer::Check(result, "VL::Could not get the resized back buffer!");
+		if (FAILED(result)) {
+			return false;
+		}
+
+		result = device_->CreateRenderTargetView(
+			backBuffer.Get(),
+			nullptr,
+			renderTargetView_.GetAddressOf());
+		vl::DebugLayer::Check(result, "VL::Could not create the resized RTV!");
+		if (FAILED(result)) {
+			return false;
+		}
+
+		D3D11_TEXTURE2D_DESC depthDescription{};
+		depthDescription.Width = width;
+		depthDescription.Height = height;
+		depthDescription.MipLevels = 1;
+		depthDescription.ArraySize = 1;
+		depthDescription.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		depthDescription.SampleDesc.Count = 1;
+		depthDescription.Usage = D3D11_USAGE_DEFAULT;
+		depthDescription.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+
+		result = device_->CreateTexture2D(
+			&depthDescription,
+			nullptr,
+			depthStencilBuffer_.GetAddressOf());
+		vl::DebugLayer::Check(result, "VL::Could not create the resized depth buffer!");
+		if (FAILED(result)) {
+			return false;
+		}
+
+		result = device_->CreateDepthStencilView(
+			depthStencilBuffer_.Get(),
+			nullptr,
+			depthStencilView_.GetAddressOf());
+		vl::DebugLayer::Check(result, "VL::Could not create the resized DSV!");
+		if (FAILED(result)) {
+			return false;
+		}
+
+		context_->OMSetDepthStencilState(depthStencilState_.Get(), 1);
+		context_->OMSetRenderTargets(
+			1,
+			renderTargetView_.GetAddressOf(),
+			depthStencilView_.Get());
+
+		return true;
+	}
+
 	Core::~Core()
 	{
 		std::println("VL::Core Resources Released");

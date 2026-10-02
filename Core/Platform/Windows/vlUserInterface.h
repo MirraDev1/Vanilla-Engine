@@ -31,11 +31,14 @@ namespace vl::UI {
 		UserInterface() = default;
 		~UserInterface();
 		using FileCallback = std::function<void()>;
+		using CamCallbacks = std::function<void()>;
 		void vlInitUI(GLFWwindow* window, ComPtr<ID3D11Device> device, ComPtr<ID3D11DeviceContext> context);
 		void vlStageUI();
 		void vlLoadSettingsPanel();
 		void RegisterPanels(Editor Panels);
 		void RegisterSettingsCallback(SettingsPanel callback);
+		void RegisterCamCallbacks(CamCallbacks camcallbacks);
+		void VlLoadCamCallbacks();
 		void RegisterFileCallbacks(FileCallback filecallbacks);
 		void vlRenderUI();
 	private:
@@ -44,6 +47,7 @@ namespace vl::UI {
 		std::vector<SettingsPanel> settingsCallbacks_;
 		std::vector<FileCallback>FileCallbacks_;
 		std::vector<Editor>panels_;
+		std::vector<CamCallbacks>camCallbacks_;
 		bool settingsOpen_ = false;
 		int selectedSettingsPage_ = 0;
 	};
