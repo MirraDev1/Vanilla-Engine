@@ -47,7 +47,7 @@ void vl::App::Application::vlGetEvents(){
 
 	vertexShader_->InitInstance(core_->GetDevice(), core_->GetContext());
 	vertexshader.filepath = "Shaders/VertexShader.hlsl";
-	vertexshader.entry = "VSMain";
+	vertexshader.entry = "VMain";
 	vertexshader.shader_model = "vs_5_0";
 	vertexShader_->vlshaderinf(vertexshader);
 

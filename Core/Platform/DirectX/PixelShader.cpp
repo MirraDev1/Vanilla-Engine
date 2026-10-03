@@ -1,5 +1,5 @@
 #include "PixelShader.h"
-#include "imgui.h"
+#include "vlDebugLayer.h"
 #include <chrono>
 
 
@@ -32,22 +32,12 @@
                 else if (!shader.ready) {
                     shader.errorMessage = "Could not compile or create the pixel shader.";
                 }
+
+                if (!shader.ready) {
+                    vl::DebugLayer::Check(hr, shader.errorMessage);
+                }
             }
         }
-
-        if (shader.errorOpen) {
-            ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
-            ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
-            if (ImGui::Begin("\aPixel Shader Error", &shader.errorOpen,
-                ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse)) {
-                ImGui::SetWindowSize(ImVec2(200, 100));
-                ImGui::TextWrapped("Shader compilation or creation failed.");
-                ImGui::Separator();
-                ImGui::TextWrapped("%s", shader.errorMessage.c_str());
-            }
-            ImGui::PopStyleColor(2);
-            ImGui::End();
-            }
     }
 
     void vl::Shaders::PixelShader::vlpshaderInf(pshader& shader) {

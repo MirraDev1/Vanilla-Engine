@@ -3,21 +3,31 @@
 
 namespace vl {
     ComPtr<ID3D11Debug> DebugLayer::debug_ = nullptr;
+    vlLogger DebugLayer::logger_{};
 
     void DebugLayer::vlConsole(){
         if (!consoleOpen_)
             return;
 
         if (ImGui::Begin("Console", &consoleOpen_)) {
+            if(ImGui::Button("Clear")) {
+                logger_.EraseLogMsg();
+			}
+
+			ImGui::Separator();
+            const auto& msg = logger_.GetLogMsg();
+
+            for (const auto& logs : msg) {
+				ImGui::Text("%s: %s", logs.IssueType.c_str(), logs.text.c_str());
+            }
         }
 
         ImGui::End();
     }
 
-    bool DebugLayer::Check(HRESULT hr, const std::string& message) {
+    bool DebugLayer::Check(HRESULT hr, std::string_view message) {
         if (FAILED(hr)) {
-            std::cerr << "VL::DX_ERROR: " << message
-                      << " | HRESULT: " << std::hex << hr << std::endl;
+			logger_.Error("VL::DX::ERR", message);
         }
         return SUCCEEDED(hr);
     }

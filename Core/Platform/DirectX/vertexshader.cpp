@@ -4,8 +4,7 @@
 #include <string_view>
 #include <vector>
 #include <chrono>
-#include "PixelShader.h"
-#include "imgui.h"
+#include "vlDebugLayer.h"
 
 namespace vl::Shaders {
 	VertexShader::VertexShader(){
@@ -59,21 +58,11 @@ namespace vl::Shaders {
 				} else if (!vshaderinf.ready) {
 					vshaderinf.errorMessage = "Could not compile or create the vertex shader.";
 				}
-			}
-		}
 
-		if (vshaderinf.errorOpen) {
-			ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
-			ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
-			if (ImGui::Begin("\aVertex Shader Error", &vshaderinf.errorOpen,
-				ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse)) {
-				ImGui::SetWindowSize(ImVec2(200, 100));
-				ImGui::TextWrapped("Shader compilation or creation failed.");
-				ImGui::Separator();
-				ImGui::TextWrapped("%s", vshaderinf.errorMessage.c_str());
+				if (!vshaderinf.ready) {
+					vl::DebugLayer::Check(hr, vshaderinf.errorMessage);
+				}
 			}
-			ImGui::PopStyleColor(2);
-			ImGui::End();
 		}
 	}
 

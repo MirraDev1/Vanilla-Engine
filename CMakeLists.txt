@@ -31,7 +31,6 @@ file(GLOB_RECURSE ENGINE_SHADERS CONFIGURE_DEPENDS
 )
 
 set(ENGINE_SOURCES
-    "Core/Main.cpp"
     "Core/Application.cpp"
     "Core/Platform/Windows/vlWindow.cpp"
     "Core/Platform/DirectX/Buffer.h"
@@ -50,7 +49,7 @@ set(ENGINE_SOURCES
      
      
      "Core/Platform/DirectX/vlDebugLayer.cpp"
-     "Core/Platform/DirectX/vlDebugLayer.h" "Core/Platform/Windows/Viewport.cpp" "Core/Platform/Windows/Viewport.h" "Core/Platform/Windows/vlCam.h" "Core/Platform/Windows/vlCam.cpp")
+     "Core/Platform/DirectX/vlDebugLayer.h" "Core/Platform/Windows/Viewport.cpp" "Core/Platform/Windows/Viewport.h" "Core/Platform/Windows/vlCam.h" "Core/Platform/Windows/vlCam.cpp" "Core/Platform/DirectX/Logger.cpp" "Core/Platform/DirectX/Logger.h")
 
 set(IMGUI_SOURCES
     ${IMGUI_DIR}/imgui.cpp
@@ -60,20 +59,26 @@ set(IMGUI_SOURCES
     ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
     ${IMGUI_DIR}/backends/imgui_impl_dx11.cpp)
 
-add_executable(Vanilla ${ENGINE_SOURCES} ${IMGUI_SOURCES})
+add_library(VanillaEngine STATIC ${ENGINE_SOURCES} ${IMGUI_SOURCES})
 
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/Core/Shaders"
     PREFIX "Shaders"
     FILES ${ENGINE_SHADERS}
 )
 
-target_include_directories(Vanilla PRIVATE
+target_include_directories(VanillaEngine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${IMGUI_DIR}
     ${IMGUI_DIR}/backends
 )
 
-target_link_libraries(Vanilla PRIVATE glfw DirectXTex tinyobjloader d3d11 d3dcompiler dxgi gdi32)
+target_link_libraries(VanillaEngine PUBLIC glfw DirectXTex tinyobjloader d3d11 d3dcompiler dxgi gdi32)
+
+add_executable(vanilla
+    "Sandbox/Main.cpp"
+)
+
+target_link_libraries(vanilla PRIVATE VanillaEngine)
 
 foreach(SHADER_FILE IN LISTS ENGINE_SHADERS)
     file(RELATIVE_PATH SHADER_RELATIVE_PATH
@@ -85,12 +90,12 @@ foreach(SHADER_FILE IN LISTS ENGINE_SHADERS)
         DIRECTORY
     )
 
-    add_custom_command(TARGET Vanilla POST_BUILD
+    add_custom_command(TARGET vanilla POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory
-            "$<TARGET_FILE_DIR:Vanilla>/Shaders/${SHADER_RELATIVE_DIRECTORY}"
+            "$<TARGET_FILE_DIR:vanilla>/Shaders/${SHADER_RELATIVE_DIRECTORY}"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${SHADER_FILE}"
-            "$<TARGET_FILE_DIR:Vanilla>/Shaders/${SHADER_RELATIVE_PATH}"
+            "$<TARGET_FILE_DIR:vanilla>/Shaders/${SHADER_RELATIVE_PATH}"
         VERBATIM
     )
 endforeach()

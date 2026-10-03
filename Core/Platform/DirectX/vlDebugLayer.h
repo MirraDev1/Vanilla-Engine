@@ -4,7 +4,9 @@
 #include <d3d11.h>
 #include <wrl/client.h>
 #include <iostream>
+#include "Logger.h"
 #include <string>
+#include <string_view>
 
 using namespace Microsoft::WRL;
 
@@ -13,11 +15,12 @@ namespace vl {
     class DebugLayer {
     public:
         void vlConsole();
-        static bool Check(HRESULT hr, const std::string& message);
+        static bool Check(HRESULT hr, std::string_view message);
         static void InitDebug(ComPtr<ID3D11Device> device);
         static void ReportLiveObjects();
     private:
         static ComPtr<ID3D11Debug> debug_;
+        static vlLogger logger_;
         bool consoleOpen_ = true;
     };
 }
