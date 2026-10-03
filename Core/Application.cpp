@@ -7,6 +7,7 @@
 #include "Platform/Windows/vlCore.h"
 #include "Platform/Windows/vlCam.h"
 #include "Platform/Windows/Viewport.h"
+#include "Platform/DirectX/vlDebugLayer.h"
 #include <iostream>
 #include <algorithm>
 
@@ -52,12 +53,16 @@ void vl::App::Application::vlGetEvents(){
 
     pixelShader_->InitInstance(core_->GetDevice(), core_->GetContext());
 	pixelshader.filename = "Shaders/PixelShader.hlsl";
-	pixelshader.entry = "PSMain";
+	pixelshader.entry = "PSain";
 	pixelshader.shader_model = "ps_5_0";
 	pixelShader_->vlpshaderInf(pixelshader);
 
 	renderer_->InitRenderer(core_->GetDevice(), core_->GetRenderTargetView(), core_->GetDepthStencilView(), core_->GetContext(), core_->GetSwapChain());
 	userInterface_->vlInitUI(window_->GetHandle(), core_->GetDevice(), core_->GetContext());
+
+	debugLayer_ = std::make_unique<vl::DebugLayer>();
+
+	userInterface_->RegisterCamCallbacks(std::bind(&vl::DebugLayer::vlConsole, debugLayer_.get()));
 }
 
 int vl::App::Application::Run() {
@@ -97,7 +102,7 @@ int vl::App::Application::Run() {
 	   vertexShader_->vlGetVertexShader(vertexshader);
 	   pixelShader_->vlLoadPixelShader(core_->GetDevice(), pixelshader);
 	   pixelShader_->vlGetPixelShader(pixelshader);
-
+	   
 	   userInterface_->vlRenderUI();
 
 	   renderer_->Present();

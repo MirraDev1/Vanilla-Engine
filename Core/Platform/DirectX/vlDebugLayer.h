@@ -8,19 +8,17 @@
 
 using namespace Microsoft::WRL;
 
-enum shaderType {
-    VertexShader,
-    PixelShader
-};
 
 namespace vl {
     class DebugLayer {
     public:
+        void vlConsole();
         static bool Check(HRESULT hr, const std::string& message);
         static void InitDebug(ComPtr<ID3D11Device> device);
         static void ReportLiveObjects();
     private:
         static ComPtr<ID3D11Debug> debug_;
+        bool consoleOpen_ = true;
     };
 }
 

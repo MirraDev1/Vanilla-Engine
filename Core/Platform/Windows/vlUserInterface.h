@@ -13,10 +13,6 @@
 #include <vector>
 using namespace Microsoft::WRL;
 
-struct Editor {
-	std::string name;
-	std::function<void()> draw;
-};
 
 struct SettingsPanel {
 	std::function<void()> Getinf;
@@ -35,18 +31,17 @@ namespace vl::UI {
 		void vlInitUI(GLFWwindow* window, ComPtr<ID3D11Device> device, ComPtr<ID3D11DeviceContext> context);
 		void vlStageUI();
 		void vlLoadSettingsPanel();
-		void RegisterPanels(Editor Panels);
 		void RegisterSettingsCallback(SettingsPanel callback);
 		void RegisterCamCallbacks(CamCallbacks camcallbacks);
 		void VlLoadCamCallbacks();
 		void RegisterFileCallbacks(FileCallback filecallbacks);
 		void vlRenderUI();
+		void vlCreateDockSpace();
 	private:
 		void vlSyncFileCallbacks();
 		void vlSyncSettingsCallback();
 		std::vector<SettingsPanel> settingsCallbacks_;
 		std::vector<FileCallback>FileCallbacks_;
-		std::vector<Editor>panels_;
 		std::vector<CamCallbacks>camCallbacks_;
 		bool settingsOpen_ = false;
 		int selectedSettingsPage_ = 0;

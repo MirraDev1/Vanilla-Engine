@@ -1,7 +1,18 @@
 #include "vlDebugLayer.h"
+#include "imgui.h"
 
 namespace vl {
     ComPtr<ID3D11Debug> DebugLayer::debug_ = nullptr;
+
+    void DebugLayer::vlConsole(){
+        if (!consoleOpen_)
+            return;
+
+        if (ImGui::Begin("Console", &consoleOpen_)) {
+        }
+
+        ImGui::End();
+    }
 
     bool DebugLayer::Check(HRESULT hr, const std::string& message) {
         if (FAILED(hr)) {

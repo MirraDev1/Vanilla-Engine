@@ -10,21 +10,15 @@ namespace vl::UI{
     void UserInterface::vlStageUI(){
         ImGui_ImplDX11_NewFrame();
         ImGui_ImplGlfw_NewFrame();
+
+        ImGuiIO& io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
         ImGui::NewFrame();
 
         vlLoadSettingsPanel();
+        vlCreateDockSpace(); 
         VlLoadCamCallbacks();
-
-        bool editor_open = true;
-        ImGui::Begin("Editor", &editor_open,ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
-        
-        for (auto& Pcallbacks : panels_) {
-            if (ImGui::CollapsingHeader(Pcallbacks.name.c_str())) {
-                Pcallbacks.draw();
-            }
-        }
-
-        ImGui::End();
     }
 
     void UserInterface::vlLoadSettingsPanel(){
@@ -66,9 +60,6 @@ namespace vl::UI{
 
     }
 
-    void UserInterface::RegisterPanels(Editor Panels){
-        panels_.push_back(std::move(Panels));
-    }
 
     void UserInterface::RegisterSettingsCallback(SettingsPanel callback){
 		settingsCallbacks_.push_back(std::move(callback));
@@ -84,6 +75,7 @@ namespace vl::UI{
             if (ImGui::BeginMenu("View")) {
               ImGui::MenuItem("Controls", nullptr, &m_camopen);
               ImGui::MenuItem("Perspective", nullptr, &m_camopen);
+              ImGui::MenuItem("Console", nullptr, &m_camopen);
 			  ImGui::EndMenu();
             }
             ImGui::EndMainMenuBar();
@@ -97,6 +89,7 @@ namespace vl::UI{
         FileCallbacks_.push_back(filecallbacks);
     }
 
+    
     void UserInterface::vlSyncFileCallbacks(){
         for (auto& fcallbacks : FileCallbacks_) {
             if (fcallbacks) fcallbacks();
@@ -112,6 +105,35 @@ namespace vl::UI{
     void UserInterface::vlRenderUI() {
         ImGui::Render();
         ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+    }
+
+    void UserInterface::vlCreateDockSpace(){
+		ImGuiViewport* viewport = ImGui::GetMainViewport();
+		ImGui::SetNextWindowPos(viewport->WorkPos);
+        ImGui::SetNextWindowSize(viewport->WorkSize);
+        ImGui::SetNextWindowViewport(viewport->ID);
+        
+        ImGuiWindowFlags window_flags =
+            ImGuiWindowFlags_MenuBar |
+            ImGuiWindowFlags_NoDocking |
+            ImGuiWindowFlags_NoTitleBar |
+            ImGuiWindowFlags_NoCollapse |
+            ImGuiWindowFlags_NoResize |
+            ImGuiWindowFlags_NoMove |
+            ImGuiWindowFlags_NoBringToFrontOnFocus |
+            ImGuiWindowFlags_NoNavFocus;
+
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+
+        ImGui::Begin("Dockspace", nullptr, window_flags);
+        ImGui::PopStyleVar(3);
+
+        ImGuiID dock_id = ImGui::GetID("myDockspace");
+        ImGui::DockSpace(dock_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
+
+        ImGui::End();
     }
 
 
