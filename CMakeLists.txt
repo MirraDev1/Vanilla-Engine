@@ -46,10 +46,14 @@ set(ENGINE_SOURCES
      "Core/Platform/DirectX/PixelShader.cpp"
      "Core/Resources/TextureRes.cpp"
      "Core/Resources/TextureRes.h"
-     
-     
      "Core/Platform/DirectX/vlDebugLayer.cpp"
-     "Core/Platform/DirectX/vlDebugLayer.h" "Core/Platform/Windows/Viewport.cpp" "Core/Platform/Windows/Viewport.h" "Core/Platform/Windows/vlCam.h" "Core/Platform/Windows/vlCam.cpp" "Core/Platform/DirectX/Logger.cpp" "Core/Platform/DirectX/Logger.h")
+     "Core/Platform/DirectX/vlDebugLayer.h" 
+     "Core/Platform/Windows/Viewport.cpp" 
+     "Core/Platform/Windows/Viewport.h" 
+     "Core/Platform/Windows/vlCam.h" 
+     "Core/Platform/Windows/vlCam.cpp"
+     "Core/Platform/DirectX/Logger.cpp" 
+     "Core/Platform/DirectX/Logger.h")
 
 set(IMGUI_SOURCES
     ${IMGUI_DIR}/imgui.cpp
