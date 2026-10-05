@@ -1,37 +1,54 @@
 # Vanilla Engine
 
-A Game Engine Built while Learning
+Vanilla Engine is a game engine, built while learning.
+Inspired by Yan Chernikov porpularly known as "Cherno". I learned a lot from his tutorials.
+so...i should give it a try and make my own engine. I hope this will be a good learning experience for me and also to you(yes you).
 
-## Layout
+## Architecture
 
-- `Core/` — application lifetime and platform window code.
-- `Sandbox/` — other executable entry point; use it for experiments without cluttering engine code.
-- `Core/Vendor/` — third-party code (GLFW and Dear ImGui).
+The engine is one static library, `VanillaEngine`, and two programs that link it.
 
-## Build
+- `editor` (`Core/Main.cpp`) starts the Editor.
+- `vanilla` (`Sandbox/Main.cpp`) starts the same engine with a different proscess created by `CreateProscess()` function  provided by the Windows OS API
 
-Open this folder in Visual Studio with CMake support, select the `x64-debug` preset, and build `Vanilla`. The HLSL shader files are copied beside the executable automatically.
+`Application` owns the window and the frame. Each frame polls input, updates the camera, clears the screen, uploads the Editor's Events, then presents.
 
-## Tool Needed To Run This Code In Visual Studio
-1. Desktop Developement with C/C++
-2. HLSL Tools
-3. your PC's GPU must be supporting DirectX11
+- `Core/Platform/Windows/` — window, device, renderer, camera(didn't find a good name actually), and viewport.
+- `Core/Platform/DirectX/` — shaders, GPU buffers, debug output, and the log.
+- `Core/Resources/` — texture loading.(gonna have to change this soon)
+- `Core/Shaders/` — vertex and pixel shaders.
+- `Core/Platform/Windows/vlUserInterface.*` — dockable editor UI, settings, and the console.
+- `Core/Vendor/` — third-party code.(glfw , ImGui e.t.c)
 
-## Changelog
+## Notes
+(unnescessary maybe?)
+- This is a 3D engine.
+- The application owns the window. The editor only borrows it.
+- Files in `Core/Shaders` are copied into a `Shaders` folder beside the executable at build time. The program loads them from there.
+- `ApplicationConfig::enableEditor` is the switch between the editor and the runtime. Keep experiments in `Sandbox/` so `Core/` stays the engine.(one of the worst ways to separate the Editor from the runtime but also trying to Improve that)
 
-### 2026-08-08
+## Contributing
+if you want to contribute(i first appreciate for that) you can:
+Use a different branch. Do not commit straight to the main branch.
 
-- Changed `UserInterface::vlInitUI` to receive a non-owning `GLFWwindow*`. The application owns the window, so the UI must borrow it rather than put it in another `unique_ptr`.
-- Connected the UI frame lifecycle to the application loop: start a frame, build the UI, render the UI, then present the swap chain.
-- Added a basic engine-style Settings window with categories on the left and options on the right.
-- Added the `Rendering` category with Solid and Wireframe options.
-- Fixed the settings callback flow so registered callbacks are invoked inside the selected category.
-- Fixed DirectX render-state creation and binding after the callback changes the selected mode.
-- Fixed ImGui `Begin`/`End` pairing. Every successful or unsuccessful `Begin` call must have a matching `End` call.
+1. Branch off `master`.
+2. Do the work on that branch.
+3. Open a pull request back into `master`(main branch).
 
-### 2026-08-08
+## Running it
 
-- Added automatic CMake discovery and copying for `.hlsl` and `.hlsli` files under `Core/Shaders`.
-- Added shader initialization helpers for the vertex and pixel shader classes.
-- Updated shader classes to use the `vl::core::Shaders` namespace Because of namespace conflicts with `vl::Core`
-- Connected shader initialization to the application startup flow.
+Install these first:
+
+1. Visual Studio 2022, with the **Desktop development with C++** workload.
+2. HLSL Tools.
+3. A GPU that supports DirectX 11(I'm sure all GPU's have this).
+
+Open this folder in Visual Studio, select the `x64-debug` preset, and build `editor` or `vanilla`(im going to change this name i promise maybe to `VanillaRuntime` or...just `Sandbox`).
+
+### Tech stack
+
+C++23, CMake, GLFW, DirectX 11, HLSL
+
+It looks rough(or....ugly i can say) right now. but...I'll improve it over time.
+My weakpoint mainly lies on shader writing HLSL so if your good at this you'll be of great help
+peace☮
