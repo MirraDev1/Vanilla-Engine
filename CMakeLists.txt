@@ -53,7 +53,9 @@ set(ENGINE_SOURCES
      "Core/Platform/Windows/vlCam.h" 
      "Core/Platform/Windows/vlCam.cpp"
      "Core/Platform/DirectX/Logger.cpp" 
-     "Core/Platform/DirectX/Logger.h")
+     "Core/Platform/DirectX/Logger.h"
+     "Core/Platform/Windows/Input.h"
+     "Core/Platform/Windows/Input.cpp")
 
 set(IMGUI_SOURCES
     ${IMGUI_DIR}/imgui.cpp

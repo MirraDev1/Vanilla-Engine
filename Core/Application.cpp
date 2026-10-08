@@ -8,6 +8,7 @@
 #include "Platform/Windows/vlCam.h"
 #include "Platform/Windows/Viewport.h"
 #include "Platform/DirectX/vlDebugLayer.h"
+#include "Platform/Windows/Input.h"
 #include <iostream>
 #include <algorithm>
 
@@ -60,6 +61,9 @@ void vl::App::Application::vlGetEvents(){
 	renderer_->InitRenderer(core_->GetDevice(), core_->GetRenderTargetView(), core_->GetDepthStencilView(), core_->GetContext(), core_->GetSwapChain());
 	userInterface_->vlInitUI(window_->GetHandle(), core_->GetDevice(), core_->GetContext());
 
+	// initialize input (ImGui already initialized inside vlInitUI)
+	vl::Input::Init(window_->GetHandle());
+
 	debugLayer_ = std::make_unique<vl::DebugLayer>();
 
 	userInterface_->RegisterCamCallbacks(std::bind(&vl::DebugLayer::vlConsole, debugLayer_.get()));
@@ -68,7 +72,10 @@ void vl::App::Application::vlGetEvents(){
 int vl::App::Application::Run() {
 	vlGetEvents();
 	while (!glfwWindowShouldClose(window_->GetHandle())) {
-       glfwPollEvents();
+		  glfwPollEvents();
+
+	   // update input state
+	   vl::Input::NewFrame();
 
 	   std::uint32_t framebufferWidth = 0;
 	   std::uint32_t framebufferHeight = 0;
@@ -106,6 +113,10 @@ int vl::App::Application::Run() {
 	   userInterface_->vlRenderUI();
 
 	   renderer_->Present();
-    }
+	}
+
+	// on shutdown
+	vl::Input::Shutdown();
+
    return 0;
 }
