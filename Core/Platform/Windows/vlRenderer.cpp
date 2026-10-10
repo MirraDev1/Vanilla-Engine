@@ -1,6 +1,7 @@
 #include "vlRenderer.h"
 #include "../DirectX/Buffer.h"
 #include "imgui.h"
+#include "Transform.h"
 
 namespace vl::Platform {
 
@@ -45,6 +46,29 @@ namespace vl::Platform {
 		dsv.Reset();
 	}
 
+	DirectX::XMMATRIX Renderer::UpdateWorldMatrix(const Transform& m_transform){
+		DirectX::XMMATRIX rotation = DirectX::XMMatrixRotationRollPitchYaw(
+			DirectX::XMConvertToRadians(m_transform.Rotation.x),
+			DirectX::XMConvertToRadians(m_transform.Rotation.y),
+			DirectX::XMConvertToRadians(m_transform.Rotation.z)
+		);
+
+		DirectX::XMMATRIX scaling = DirectX::XMMatrixScaling(
+			m_transform.Scaling.x,
+			m_transform.Scaling.y,
+			m_transform.Scaling.z
+		);
+
+		DirectX::XMMATRIX translation = DirectX::XMMatrixTranslation(
+			m_transform.Position.x,
+			m_transform.Position.y,
+			m_transform.Position.z
+		);
+
+		XMMATRIX m_world = scaling * rotation * translation;
+		return m_world;
+	}
+
 	void Renderer::ClearFrame(const float clearColor[4]) {
 		if (!context || !rtv || clearColor == nullptr) {
 			return;
@@ -63,13 +87,14 @@ namespace vl::Platform {
 		}
 	}
 
-	void Renderer::UpdateSceneMatrices(const DirectX::XMMATRIX& world,const DirectX::XMMATRIX& view,const DirectX::XMMATRIX& projection) {
+	void Renderer::UpdateSceneMatrices(const DirectX::XMMATRIX& view,const DirectX::XMMATRIX& projection) {
 		if (!context || !sceneMatrixBuffer) {
 			return;
 		}
-
+		//Temporary object to fill the params first
+		Transform in_transform{};
 		SceneMatrices matrices{};
-		DirectX::XMStoreFloat4x4(&matrices.world,DirectX::XMMatrixTranspose(world));
+		DirectX::XMStoreFloat4x4(&matrices.world,DirectX::XMMatrixTranspose(UpdateWorldMatrix(in_transform)));
 		DirectX::XMStoreFloat4x4(&matrices.view,DirectX::XMMatrixTranspose(view));
 		DirectX::XMStoreFloat4x4(&matrices.projection,DirectX::XMMatrixTranspose(projection));
 		context->UpdateSubresource(

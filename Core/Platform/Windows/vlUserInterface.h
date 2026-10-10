@@ -36,8 +36,10 @@ namespace vl::UI {
 		void VlLoadCamCallbacks();
 		void RegisterFileCallbacks(FileCallback filecallbacks);
 		void vlRenderUI();
+		void run();
 		void vlCreateDockSpace();
 	private:
+		void vlEngineProperties();
 		void vlSyncFileCallbacks();
 		void vlSyncSettingsCallback();
 		std::vector<SettingsPanel> settingsCallbacks_;
@@ -45,6 +47,7 @@ namespace vl::UI {
 		std::vector<CamCallbacks>camCallbacks_;
 		bool settingsOpen_ = false;
 		int selectedSettingsPage_ = 0;
+		vlLogger& logger_;
 	};
 }
 

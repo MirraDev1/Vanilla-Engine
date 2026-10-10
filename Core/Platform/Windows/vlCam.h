@@ -5,6 +5,7 @@
 #include <wrl/client.h>
 #include <memory>
 
+
 using namespace Microsoft::WRL;
 using namespace DirectX;
 

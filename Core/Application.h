@@ -4,7 +4,10 @@
 #include "Platform/DirectX/VertexShader.h"
 #include "Platform/DirectX/PixelShader.h"
 
+
 class Camera;
+
+struct Transform;
 
 namespace vl::Platform {
 class Window;
@@ -30,13 +33,20 @@ class UserInterface;
 }
 
 namespace vl::App{
+struct ApplicationConfig {
+    bool enableEditor = false;
+    unsigned int width = 1280;
+    unsigned int height = 720;
+};
+
 class Application{
 public:
-    Application();
+    explicit Application(ApplicationConfig config = {});
     ~Application();
 	void vlGetEvents();
 	int Run();
 private:
+    ApplicationConfig config_{};
 	std::unique_ptr<vl::Platform::Window> window_;
 	std::unique_ptr<vl::Core> core_;
     std::unique_ptr<vl::Platform::Renderer> renderer_;
@@ -45,6 +55,7 @@ private:
 	std::unique_ptr<vl::Shaders::PixelShader> pixelShader_;
 	std::unique_ptr<vl::DebugLayer>debugLayer_;
 	std::unique_ptr<Camera> camera_;
+	std::unique_ptr<Transform> transform_;
 	vshader vertexshader{};
 	pshader pixelshader{};
 };

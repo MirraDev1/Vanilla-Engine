@@ -10,9 +10,11 @@
 #include "Platform/DirectX/vlDebugLayer.h"
 #include <iostream>
 #include <algorithm>
+#include "Platform/Windows/Transform.h"
 
 
-vl::App::Application::Application()
+vl::App::Application::Application(ApplicationConfig config)
+	: config_(config)
 {
 }
 
@@ -21,10 +23,8 @@ vl::App::Application::~Application()
 }
 
 void vl::App::Application::vlGetEvents(){
-	constexpr unsigned int width = 1280;
-	constexpr unsigned int height = 720;
 	window_ = std::make_unique<vl::Platform::Window>();
-	if (!window_->vlCreateWindow(width, height, "Vanilla Engine")) {
+	if (!window_->vlCreateWindow(config_.width, config_.height, "Vanilla Engine")) {
 		return;
 	}
 	core_ = std::make_unique<vl::Core>();
@@ -41,33 +41,44 @@ void vl::App::Application::vlGetEvents(){
 	camera_->InitViewport(initialViewport);
 
 	renderer_ = std::make_unique<vl::Platform::Renderer>();
-	userInterface_ = std::make_unique<vl::UI::UserInterface>();
-	vertexShader_ = std::make_unique<vl::Shaders::VertexShader>();
-	pixelShader_ = std::make_unique<vl::Shaders::PixelShader>();
 
-	vertexShader_->InitInstance(core_->GetDevice(), core_->GetContext());
-	vertexshader.filepath = "Shaders/VertexShader.hlsl";
-	vertexshader.entry = "VMain";
-	vertexshader.shader_model = "vs_5_0";
-	vertexShader_->vlshaderinf(vertexshader);
+	if (config_.enableEditor) {
+		userInterface_ = std::make_unique<vl::UI::UserInterface>();
+		vertexShader_ = std::make_unique<vl::Shaders::VertexShader>();
+		pixelShader_ = std::make_unique<vl::Shaders::PixelShader>();
 
-    pixelShader_->InitInstance(core_->GetDevice(), core_->GetContext());
-	pixelshader.filename = "Shaders/PixelShader.hlsl";
-	pixelshader.entry = "PSain";
-	pixelshader.shader_model = "ps_5_0";
-	pixelShader_->vlpshaderInf(pixelshader);
+		vertexShader_->InitInstance(core_->GetDevice(), core_->GetContext());
+		vertexshader.filepath = "Shaders/VertexShader.hlsl";
+		vertexshader.entry = "VMain";
+		vertexshader.shader_model = "vs_5_0";
+		vertexShader_->vlshaderinf(vertexshader);
+
+		pixelShader_->InitInstance(core_->GetDevice(), core_->GetContext());
+		pixelshader.filename = "Shaders/PixelShader.hlsl";
+		pixelshader.entry = "PSain";
+		pixelshader.shader_model = "ps_5_0";
+		pixelShader_->vlpshaderInf(pixelshader);
+	}
 
 	renderer_->InitRenderer(core_->GetDevice(), core_->GetRenderTargetView(), core_->GetDepthStencilView(), core_->GetContext(), core_->GetSwapChain());
-	userInterface_->vlInitUI(window_->GetHandle(), core_->GetDevice(), core_->GetContext());
 
-	debugLayer_ = std::make_unique<vl::DebugLayer>();
-
-	userInterface_->RegisterCamCallbacks(std::bind(&vl::DebugLayer::vlConsole, debugLayer_.get()));
+	if (config_.enableEditor) {
+		userInterface_->vlInitUI(window_->GetHandle(), core_->GetDevice(), core_->GetContext());
+		debugLayer_ = std::make_unique<vl::DebugLayer>();
+		userInterface_->RegisterCamCallbacks(std::bind(&vl::DebugLayer::vlConsole, debugLayer_.get()));
+	}
 }
 
 int vl::App::Application::Run() {
 	vlGetEvents();
+	
+	float lastFrameTime = 0.0f;
+	
 	while (!glfwWindowShouldClose(window_->GetHandle())) {
+	   float currentFrameTime = static_cast<float>(glfwGetTime());
+	   float deltaTime = currentFrameTime - lastFrameTime;
+	   lastFrameTime = currentFrameTime;
+	   
        glfwPollEvents();
 
 	   std::uint32_t framebufferWidth = 0;
@@ -92,18 +103,25 @@ int vl::App::Application::Run() {
 	   constexpr float clearColor[4] = { 0.05f, 0.05f, 0.05f, 1.0f };
 	   renderer_->ClearFrame(clearColor);
 	   renderer_->UpdateSceneMatrices(
-		   DirectX::XMMatrixIdentity(),
+		   renderer_->UpdateWorldMatrix(),
 		   camera_->GetViewMatrix(),
 		   camera_->GetProjectionMatrix());
 
-	   userInterface_->vlStageUI();
+	   if (config_.enableEditor) {
+		   userInterface_->vlStageUI();
 
-	   vertexShader_->vlLoadVertexShader(core_->GetDevice(), vertexshader);
-	   vertexShader_->vlGetVertexShader(vertexshader);
-	   pixelShader_->vlLoadPixelShader(core_->GetDevice(), pixelshader);
-	   pixelShader_->vlGetPixelShader(pixelshader);
-	   
-	   userInterface_->vlRenderUI();
+		   vertexShader_->vlLoadVertexShader(core_->GetDevice(), vertexshader);
+		   if (vertexshader.ready) {
+		       vertexShader_->vlGetVertexShader(vertexshader);
+		   }
+		   
+		   pixelShader_->vlLoadPixelShader(core_->GetDevice(), pixelshader);
+		   if (pixelshader.ready) {
+		       pixelShader_->vlGetPixelShader(pixelshader);
+		   }
+
+		   userInterface_->vlRenderUI();
+	   }
 
 	   renderer_->Present();
     }

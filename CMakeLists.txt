@@ -46,10 +46,17 @@ set(ENGINE_SOURCES
      "Core/Platform/DirectX/PixelShader.cpp"
      "Core/Resources/TextureRes.cpp"
      "Core/Resources/TextureRes.h"
-     
-     
      "Core/Platform/DirectX/vlDebugLayer.cpp"
-     "Core/Platform/DirectX/vlDebugLayer.h" "Core/Platform/Windows/Viewport.cpp" "Core/Platform/Windows/Viewport.h" "Core/Platform/Windows/vlCam.h" "Core/Platform/Windows/vlCam.cpp" "Core/Platform/DirectX/Logger.cpp" "Core/Platform/DirectX/Logger.h")
+     "Core/Platform/DirectX/vlDebugLayer.h" 
+     "Core/Platform/Windows/Viewport.cpp"
+     "Core/Platform/Windows/Viewport.h" 
+     "Core/Platform/Windows/vlCam.h" 
+     "Core/Platform/Windows/vlCam.cpp" 
+     "Core/Platform/DirectX/Logger.cpp" 
+     "Core/Platform/DirectX/Logger.h" 
+     "Core/Platform/Windows/vlProscess.cpp" 
+     "Core/Platform/Windows/vlProscess.h"
+     "Sandbox/Scene/vlScene.h" "Sandbox/Scene/vlScene.cpp"  "Sandbox/Scene/Component.h" "Sandbox/Scene/Entity.cpp" "Sandbox/Scene/Entity.h" "Core/Platform/Windows/Transform.h" "Sandbox/Scene/ComponentFactory.cpp" "Sandbox/Scene/ComponentFactory.h")
 
 set(IMGUI_SOURCES
     ${IMGUI_DIR}/imgui.cpp
@@ -80,22 +87,33 @@ add_executable(vanilla
 
 target_link_libraries(vanilla PRIVATE VanillaEngine)
 
-foreach(SHADER_FILE IN LISTS ENGINE_SHADERS)
-    file(RELATIVE_PATH SHADER_RELATIVE_PATH
-        "${CMAKE_CURRENT_SOURCE_DIR}/Core/Shaders"
-        "${SHADER_FILE}"
-    )
-    get_filename_component(SHADER_RELATIVE_DIRECTORY
-        "${SHADER_RELATIVE_PATH}"
-        DIRECTORY
-    )
+add_executable(editor
+    "Core/Main.cpp"
+)
 
-    add_custom_command(TARGET vanilla POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory
-            "$<TARGET_FILE_DIR:vanilla>/Shaders/${SHADER_RELATIVE_DIRECTORY}"
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+target_link_libraries(editor PRIVATE VanillaEngine)
+
+function(copy_engine_shaders target_name)
+    foreach(SHADER_FILE IN LISTS ENGINE_SHADERS)
+        file(RELATIVE_PATH SHADER_RELATIVE_PATH
+            "${CMAKE_CURRENT_SOURCE_DIR}/Core/Shaders"
             "${SHADER_FILE}"
-            "$<TARGET_FILE_DIR:vanilla>/Shaders/${SHADER_RELATIVE_PATH}"
-        VERBATIM
-    )
-endforeach()
+        )
+        get_filename_component(SHADER_RELATIVE_DIRECTORY
+            "${SHADER_RELATIVE_PATH}"
+            DIRECTORY
+        )
+
+        add_custom_command(TARGET ${target_name} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E make_directory
+                "$<TARGET_FILE_DIR:${target_name}>/Shaders/${SHADER_RELATIVE_DIRECTORY}"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${SHADER_FILE}"
+                "$<TARGET_FILE_DIR:${target_name}>/Shaders/${SHADER_RELATIVE_PATH}"
+            VERBATIM
+        )
+    endforeach()
+endfunction()
+
+copy_engine_shaders(vanilla)
+copy_engine_shaders(editor)
