@@ -10,6 +10,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # DirectXTex is vendored under Core/Vendor and built as a static library.
 set(BUILD_TOOLS OFF CACHE BOOL "" FORCE)
 set(BUILD_SAMPLE OFF CACHE BOOL "" FORCE)
+# Ensure DirectXTex sees the target architecture so its conditional checks work
+set(DIRECTX_ARCH "x64" CACHE STRING "" FORCE)
 add_subdirectory(Core/Vendor/DirectXTex EXCLUDE_FROM_ALL)
 
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)

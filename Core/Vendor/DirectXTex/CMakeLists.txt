@@ -468,9 +468,13 @@ if(DEP_L)
   string(REPLACE ";" ", " DIRECTXTEX_DEP " ${DIRECTXTEX_DEP_L}")
 endif()
 
-configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/build/DirectXTex.pc.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/DirectXTex.pc" @ONLY)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/build/DirectXTex.pc.in")
+  configure_file(
+      "${CMAKE_CURRENT_SOURCE_DIR}/build/DirectXTex.pc.in"
+      "${CMAKE_CURRENT_BINARY_DIR}/DirectXTex.pc" @ONLY)
+  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/DirectXTex.pc"
+          DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+endif()
 
 # Install the pkg-config file
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/DirectXTex.pc"
