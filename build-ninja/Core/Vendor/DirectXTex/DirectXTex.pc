@@ -1,0 +1,15 @@
+prefix=C:/Program Files (x86)/VanillaEngine
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: DirectXTex
+Description: DirectX Texture Library
+Version: 2.1.1
+Requires: 
+Libs: -L${libdir} -lDirectXTex
+Cflags: -I${includedir}
+
+# Optional: private linkage and compiler flags can be added if required
+#Libs.private:
+#Cflags.private:

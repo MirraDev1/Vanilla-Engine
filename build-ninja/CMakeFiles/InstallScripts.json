@@ -1,0 +1,11 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Users/kadyn/source/repos/Vanilla-Engine/build-ninja/cmake_install.cmake",
+		"C:/Users/kadyn/source/repos/Vanilla-Engine/build-ninja/Core/Vendor/DirectXTex/cmake_install.cmake",
+		"C:/Users/kadyn/source/repos/Vanilla-Engine/build-ninja/Core/Vendor/glfw/cmake_install.cmake",
+		"C:/Users/kadyn/source/repos/Vanilla-Engine/build-ninja/Core/Vendor/glfw/src/cmake_install.cmake",
+		"C:/Users/kadyn/source/repos/Vanilla-Engine/build-ninja/Core/Vendor/tinyobjloader/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

@@ -7,6 +7,20 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# By default place runtime artifacts outside the repository root so the exe
+# is not produced under the source tree. Users may override EXTERNAL_OUTPUT_DIR
+# cache variable to choose a different external location.
+if(NOT DEFINED EXTERNAL_OUTPUT_DIR)
+    set(EXTERNAL_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/../Vanilla-Engine-Binaries" CACHE PATH "Directory for runtime output (exe/dlls) placed outside the repo")
+else()
+    set(EXTERNAL_OUTPUT_DIR "${EXTERNAL_OUTPUT_DIR}" CACHE PATH "Directory for runtime output (exe/dlls) placed outside the repo")
+endif()
+
+# Multi-config aware layout (Debug/Release) when supported by the generator
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${EXTERNAL_OUTPUT_DIR}/${CMAKE_CFG_INTDIR}")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${EXTERNAL_OUTPUT_DIR}/lib/${CMAKE_CFG_INTDIR}")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${EXTERNAL_OUTPUT_DIR}/lib/${CMAKE_CFG_INTDIR}")
+
 # DirectXTex is vendored under Core/Vendor and built as a static library.
 set(BUILD_TOOLS OFF CACHE BOOL "" FORCE)
 set(BUILD_SAMPLE OFF CACHE BOOL "" FORCE)
@@ -34,6 +48,11 @@ file(GLOB_RECURSE ENGINE_SHADERS CONFIGURE_DEPENDS
 
 set(ENGINE_SOURCES
     "Core/Application.cpp"
+    "Core/Scene/Scene.cpp"
+    "Core/Scene/Components.cpp"
+    "Core/Scene/Systems.cpp"
+    "Core/Resources/ObjLoader.cpp"
+    "Core/Resources/GpuModel.cpp"
     "Core/Platform/Windows/vlWindow.cpp"
     "Core/Platform/DirectX/Buffer.h"
      "Core/Platform/DirectX/Buffer.cpp"

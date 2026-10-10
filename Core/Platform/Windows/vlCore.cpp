@@ -29,10 +29,7 @@ namespace vl {
 		scd.BufferDesc.RefreshRate.Numerator = 60;
 		scd.BufferDesc.RefreshRate.Denominator = 1;
 
-		UINT createFlags = 0;
-#ifdef _DEBUG
-		createFlags = D3D11_CREATE_DEVICE_DEBUG;
-#endif
+		UINT createFlags = D3D11_CREATE_DEVICE_DEBUG;
 		HRESULT result = D3D11CreateDeviceAndSwapChain(
 			nullptr,
 			D3D_DRIVER_TYPE_HARDWARE,
@@ -49,9 +46,14 @@ namespace vl {
 		);
 		// The app must still run when Windows does not have the optional debug runtime installed.
 		if (FAILED(result) && createFlags != 0) {
+			swapChain_.Reset();
+			device_.Reset();
+			context_.Reset();
+			vl::DebugLayer::Log("D3D11 debug device creation failed; retrying without the optional debug runtime.", Warning);
 			result = D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, 0, nullptr, 0,
 				D3D11_SDK_VERSION, &scd, swapChain_.GetAddressOf(), device_.GetAddressOf(), nullptr, context_.GetAddressOf());
 		}
+		vl::DebugLayer::Log("D3D11 device, immediate context, and swap chain created.", Info);
 		if (FAILED(result)) {
 			std::cerr << "VL::Could not create the D3D11 device and swap chain: "
 			          << std::hex << result << std::endl;

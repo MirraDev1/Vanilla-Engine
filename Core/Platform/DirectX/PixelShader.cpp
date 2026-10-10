@@ -35,6 +35,10 @@
 
                 if (!shader.ready) {
                     vl::DebugLayer::Check(hr, shader.errorMessage);
+                    vl::DebugLayer::Log("Pixel shader compilation/creation failed for entry '" + shader.entry + "'.", Error);
+                }
+                else {
+                    vl::DebugLayer::Log("Pixel shader compiled and created: " + shader.entry, Info);
                 }
             }
         }

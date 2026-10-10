@@ -61,6 +61,10 @@ namespace vl::Shaders {
 
 				if (!vshaderinf.ready) {
 					vl::DebugLayer::Check(hr, vshaderinf.errorMessage);
+					vl::DebugLayer::Log("Vertex shader compilation/creation failed for entry '" + vshaderinf.entry + "'.", Error);
+				}
+				else {
+					vl::DebugLayer::Log("Vertex shader compiled and created: " + vshaderinf.entry, Info);
 				}
 			}
 		}
@@ -142,13 +146,14 @@ namespace vl::Shaders {
 			inputParams.push_back(Layout);
 		}
 
-		device->CreateInputLayout(
+		result = device->CreateInputLayout(
 			inputParams.data(),
 			(UINT)inputParams.size(),
 			cresult.VertexShaderByteCode->GetBufferPointer(),
 			cresult.VertexShaderByteCode->GetBufferSize(),
 			ishader.inputLayout.GetAddressOf()
 		);
+		vl::DebugLayer::Check(result, "CreateInputLayout failed for the vertex shader signature");
 	}
 
 	void VertexShader::InitInstance(ComPtr<ID3D11Device> deviceInstance,ComPtr<ID3D11DeviceContext>context_){

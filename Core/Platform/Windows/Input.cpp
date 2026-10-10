@@ -1,113 +1,116 @@
 #include "Input.h"
-#include <vector>
 
 namespace vl::Input {
 
-static GLFWwindow* s_Window = nullptr;
-static std::vector<unsigned char> s_keysPrev;
-static std::vector<unsigned char> s_keysCurr;
-static std::vector<unsigned char> s_mousePrev;
-static std::vector<unsigned char> s_mouseCurr;
-static double s_mouseX = 0.0, s_mouseY = 0.0;
-static double s_mouseLastX = 0.0, s_mouseLastY = 0.0;
-static bool s_initialized = false;
-
-void Init(GLFWwindow* window) {
-	s_Window = window;
-	const int keyCount = GLFW_KEY_LAST + 1;
-	const int mouseCount = GLFW_MOUSE_BUTTON_LAST + 1;
-	s_keysPrev.assign(keyCount, 0);
-	s_keysCurr.assign(keyCount, 0);
-	s_mousePrev.assign(mouseCount, 0);
-	s_mouseCurr.assign(mouseCount, 0);
-	if (s_Window) glfwGetCursorPos(s_Window, &s_mouseX, &s_mouseY);
-	s_mouseLastX = s_mouseX;
-	s_mouseLastY = s_mouseY;
-	s_initialized = true;
+void InputManager::Init(GLFWwindow* window) noexcept
+{
+	window_ = window;
+	keysPrevious_.fill(0);
+	keysCurrent_.fill(0);
+	mousePrevious_.fill(0);
+	mouseCurrent_.fill(0);
+	mouseDeltaX_ = 0.0;
+	mouseDeltaY_ = 0.0;
+	viewportInput_ = false;
+	if (window_ != nullptr) {
+		glfwGetCursorPos(window_, &mouseX_, &mouseY_);
+		lastMouseX_ = mouseX_;
+		lastMouseY_ = mouseY_;
+	}
 }
 
-void Shutdown() {
-	s_initialized = false;
-	s_Window = nullptr;
-	s_keysPrev.clear();
-	s_keysCurr.clear();
-	s_mousePrev.clear();
-	s_mouseCurr.clear();
+void InputManager::Shutdown() noexcept
+{
+	window_ = nullptr;
+	keysPrevious_.fill(0);
+	keysCurrent_.fill(0);
+	mousePrevious_.fill(0);
+	mouseCurrent_.fill(0);
+	mouseDeltaX_ = 0.0;
+	mouseDeltaY_ = 0.0;
+	viewportInput_ = false;
 }
 
-void NewFrame() {
-	if (!s_initialized || !s_Window) return;
+void InputManager::NewFrame(const bool wantCaptureKeyboard, const bool wantCaptureMouse,
+	const bool viewportFocused, const bool viewportHovered) noexcept
+{
+	if (window_ == nullptr) return;
 
-	s_keysPrev = s_keysCurr;
-	s_mousePrev = s_mouseCurr;
+	keysPrevious_ = keysCurrent_;
+	mousePrevious_ = mouseCurrent_;
+	viewportInput_ = viewportFocused && viewportHovered;
+	const bool allowKeyboard = !wantCaptureKeyboard;
+	const bool allowMouse = viewportInput_ || !wantCaptureMouse;
 
-	for (int k = 0; k <= GLFW_KEY_LAST; ++k)
-		s_keysCurr[k] = (glfwGetKey(s_Window, k) == GLFW_PRESS) ? 1 : 0;
+	for (int key = 0; key <= GLFW_KEY_LAST; ++key)
+		keysCurrent_[key] = allowKeyboard && glfwGetKey(window_, key) == GLFW_PRESS ? 1 : 0;
+	for (int button = 0; button <= GLFW_MOUSE_BUTTON_LAST; ++button)
+		mouseCurrent_[button] = allowMouse && glfwGetMouseButton(window_, button) == GLFW_PRESS ? 1 : 0;
 
-	for (int b = 0; b <= GLFW_MOUSE_BUTTON_LAST; ++b)
-		s_mouseCurr[b] = (glfwGetMouseButton(s_Window, b) == GLFW_PRESS) ? 1 : 0;
-
-	glfwGetCursorPos(s_Window, &s_mouseX, &s_mouseY);
+	glfwGetCursorPos(window_, &mouseX_, &mouseY_);
+	mouseDeltaX_ = allowMouse ? mouseX_ - lastMouseX_ : 0.0;
+	mouseDeltaY_ = allowMouse ? mouseY_ - lastMouseY_ : 0.0;
+	lastMouseX_ = mouseX_;
+	lastMouseY_ = mouseY_;
 }
 
-bool IsKeyDown(int glfwKey) {
-	if (!s_initialized) return false;
-	if (glfwKey < 0 || glfwKey > GLFW_KEY_LAST) return false;
-	return s_keysCurr[glfwKey];
+bool InputManager::IsKeyDown(const int key) const noexcept
+{
+	return key >= 0 && key <= GLFW_KEY_LAST && keysCurrent_[key] != 0;
 }
 
-bool IsKeyPressed(int glfwKey) {
-	if (!s_initialized) return false;
-	if (glfwKey < 0 || glfwKey > GLFW_KEY_LAST) return false;
-	return s_keysCurr[glfwKey] && !s_keysPrev[glfwKey];
+bool InputManager::IsKeyPressed(const int key) const noexcept
+{
+	return key >= 0 && key <= GLFW_KEY_LAST && keysCurrent_[key] && !keysPrevious_[key];
 }
 
-bool IsKeyReleased(int glfwKey) {
-	if (!s_initialized) return false;
-	if (glfwKey < 0 || glfwKey > GLFW_KEY_LAST) return false;
-	return !s_keysCurr[glfwKey] && s_keysPrev[glfwKey];
+bool InputManager::IsKeyReleased(const int key) const noexcept
+{
+	return key >= 0 && key <= GLFW_KEY_LAST && !keysCurrent_[key] && keysPrevious_[key];
 }
 
-bool IsMouseDown(int button) {
-	if (!s_initialized) return false;
-	if (button < 0 || button > GLFW_MOUSE_BUTTON_LAST) return false;
-	return s_mouseCurr[button];
+bool InputManager::IsMouseDown(const int button) const noexcept
+{
+	return button >= 0 && button <= GLFW_MOUSE_BUTTON_LAST && mouseCurrent_[button] != 0;
 }
 
-bool IsMousePressed(int button) {
-	if (!s_initialized) return false;
-	if (button < 0 || button > GLFW_MOUSE_BUTTON_LAST) return false;
-	return s_mouseCurr[button] && !s_mousePrev[button];
+bool InputManager::IsMousePressed(const int button) const noexcept
+{
+	return button >= 0 && button <= GLFW_MOUSE_BUTTON_LAST && mouseCurrent_[button] && !mousePrevious_[button];
 }
 
-bool IsMouseReleased(int button) {
-	if (!s_initialized) return false;
-	if (button < 0 || button > GLFW_MOUSE_BUTTON_LAST) return false;
-	return !s_mouseCurr[button] && s_mousePrev[button];
+bool InputManager::IsMouseReleased(const int button) const noexcept
+{
+	return button >= 0 && button <= GLFW_MOUSE_BUTTON_LAST && !mouseCurrent_[button] && mousePrevious_[button];
 }
 
-void GetMousePos(double& x, double& y) {
-	x = s_mouseX;
-	y = s_mouseY;
+void InputManager::GetMousePos(double& x, double& y) const noexcept
+{
+	x = mouseX_;
+	y = mouseY_;
 }
 
-void GetMouseDelta(double& dx, double& dy) {
-	dx = s_mouseX - s_mouseLastX;
-	dy = s_mouseY - s_mouseLastY;
-	s_mouseLastX = s_mouseX;
-	s_mouseLastY = s_mouseY;
+void InputManager::GetMouseDelta(double& dx, double& dy) const noexcept
+{
+	dx = mouseDeltaX_;
+	dy = mouseDeltaY_;
 }
 
-bool IsGamepadPresent(int jid) {
+bool InputManager::HasViewportInput() const noexcept
+{
+	return viewportInput_;
+}
+
+bool InputManager::IsGamepadPresent(const int jid) const noexcept
+{
 	return glfwJoystickPresent(jid) && glfwJoystickIsGamepad(jid);
 }
 
-bool GetGamepadButton(int button, int jid) {
-	if (!IsGamepadPresent(jid)) return false;
-	GLFWgamepadstate state;
-	if (glfwGetGamepadState(jid, &state))
-		return state.buttons[button] == GLFW_PRESS;
-	return false;
+bool InputManager::GetGamepadButton(const int button, const int jid) const noexcept
+{
+	if (!IsGamepadPresent(jid) || button < 0 || button > GLFW_GAMEPAD_BUTTON_LAST) return false;
+	GLFWgamepadstate state{};
+	return glfwGetGamepadState(jid, &state) && state.buttons[button] == GLFW_PRESS;
 }
 
 } // namespace vl::Input
